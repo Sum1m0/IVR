@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能IVR管理平台 - 意图配置</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563EB',
+            primary2: '#1D4ED8',
+            primaryLight: '#EFF6FF',
+            ink: '#0F172A',
+            muted: '#64748B',
+            line: '#E2E8F0',
+            bg: '#F8FAFC'
+          },
+          boxShadow: {
+            card: '0 10px 30px rgba(15, 23, 42, 0.06)',
+            soft: '0 2px 10px rgba(15, 23, 42, 0.05)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-serif;
+      background:#F8FAFC;
+      color:#0F172A;
+    }
+    .page{
+      width:1600px;
+      height:900px;
+      margin:0 auto;
+      background:#F8FAFC;
+      border:1px solid #E2E8F0;
+      overflow:hidden;
+    }
+    .custom-scroll::-webkit-scrollbar{width:4px;height:4px}
+    .custom-scroll::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:999px}
+    .nav-active{
+      background:linear-gradient(90deg,#EFF6FF,#DBEAFE);
+      color:#2563EB;
+      font-weight:700;
+    }
+    .nav-section{color:#334155;font-weight:700;}
+    .card{
+      background:white;
+      border:1px solid #E2E8F0;
+      border-radius:14px;
+      box-shadow:0 2px 10px rgba(15,23,42,.04);
+    }
+    .metric{
+      background:#fff;
+      border:1px solid #E2E8F0;
+      border-radius:12px;
+      padding:10px 12px;
+      min-height:56px;
+    }
+    .intent-row{
+      border:1px solid #E2E8F0;
+      background:white;
+      border-radius:12px;
+      padding:10px;
+      transition:all .15s;
+    }
+    .intent-row.active{
+      border-color:#2563EB;
+      background:#EFF6FF;
+      box-shadow:0 4px 12px rgba(37,99,235,.10);
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      height:24px;
+      padding:0 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      background:#F1F5F9;
+      color:#475569;
+      margin:3px;
+    }
+    .tag-blue{background:#DBEAFE;color:#1D4ED8}
+    .tag-green{background:#DCFCE7;color:#15803D}
+    .tag-orange{background:#FFEDD5;color:#C2410C}
+    .tag-purple{background:#F3E8FF;color:#7C3AED}
+    .tag-red{background:#FEE2E2;color:#B91C1C}
+    .input-like{
+      min-height:36px;
+      border:1px solid #E2E8F0;
+      border-radius:9px;
+      background:#fff;
+      padding:8px 10px;
+      font-size:13px;
+    }
+    .assoc-row{
+      display:grid !important;
+      grid-template-columns: 1.15fr 1fr .85fr .85fr 1fr;
+      align-items:center;
+      min-height:40px;
+      border-bottom:1px solid #F1F5F9;
+      font-size:13px;
+    }
+    .assoc-row > div{
+      min-width:0;
+      padding:0 10px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .assoc-row > div:first-child{
+      padding-left:12px;
+      font-weight:600;
+    }
+    .flow-mini{
+      display:flex;align-items:center;gap:10px;
+    }
+    .flow-node{
+      border:1px solid #E2E8F0;
+      background:#fff;
+      border-radius:12px;
+      padding:10px 12px;
+      min-width:118px;
+      text-align:center;
+      font-weight:700;
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部 Header -->
+    <header class="h-[56px] bg-white border-b border-line flex items-center justify-between px-5">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 w-[220px]">
+          <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft">
+            <i class="fa-solid fa-headset text-lg"></i>
+          </div>
+          <div class="text-[18px] font-bold tracking-tight">智能IVR管理平台</div>
+        </div>
+        <div class="text-[13px] text-slate-500">
+          <span>运营配置</span>
+          <i class="fa-solid fa-chevron-right mx-2 text-[10px]"></i>
+          <span class="text-slate-800 font-semibold">意图配置</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="h-9 w-[280px] rounded-lg border border-line bg-slate-50 flex items-center gap-2 px-3 text-slate-400 text-sm">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>搜索功能、流程、知识库等</span>
+          <span class="ml-auto text-xs border border-line bg-white px-1.5 py-0.5 rounded">x</span>
+        </div>
+        <div class="relative text-slate-700">
+          <i class="fa-regular fa-bell text-xl"></i>
+          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] leading-4 px-1.5 rounded-full">12</span>
+        </div>
+        <i class="fa-regular fa-circle-question text-xl text-slate-700"></i>
+        <div class="flex items-center gap-2 pl-2">
+          <img class="w-8 h-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=faces" alt="avatar">
+          <span class="font-semibold text-sm">管理员</span>
+          <i class="fa-solid fa-chevron-down text-xs text-slate-500"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex h-[844px]">
+      <!-- 左导航 -->
+      <aside class="w-[240px] bg-white border-r border-line px-3 py-3 overflow-y-auto custom-scroll">
+        <nav class="space-y-1 text-[13px]">
+          <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-house w-4"></i><span class="font-semibold">首页总览</span>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-chart-column w-4"></i><span>数据分析</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">运营总览</div>
+              <div class="px-3 py-1.5 rounded">意图识别分析</div>
+              <div class="px-3 py-1.5 rounded">知识命中分析</div>
+              <div class="px-3 py-1.5 rounded">工单闭环分析</div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primaryLight text-primary font-bold">
+              <i class="fa-solid fa-gear w-4"></i><span>运营配置</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded"><a href="index.html">IVR流程配置</a></div>
+              <div class="px-3 py-1.5 rounded nav-active">意图配置</div>
+              <div class="px-3 py-1.5 rounded">话术配置</div>
+              <div class="px-3 py-1.5 rounded">知识配置</div>
+              <div class="px-3 py-1.5 rounded">路由配置</div>
+              <div class="px-3 py-1.5 rounded">兜底配置</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-clipboard-list w-4"></i><span>工单联动</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">工单规则配置</div>
+              <div class="px-3 py-1.5 rounded">字段预填配置</div>
+              <div class="px-3 py-1.5 rounded">工单回流记录</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-chart-simple w-4"></i><span>话务报表</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 text-slate-600">
+              <div class="px-3 py-1.5 rounded">通话记录</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-phone w-4"></i><span>号码管理</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 text-slate-600">
+              <div class="px-3 py-1.5 rounded">热线号码管理</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-shield-halved w-4"></i><span>系统管理</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">用户管理</div>
+              <div class="px-3 py-1.5 rounded">角色权限</div>
+              <div class="px-3 py-1.5 rounded">操作日志</div>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- 主体 -->
+      <main class="flex-1 p-4 overflow-hidden">
+        <!-- 页面标题区 -->
+        <section class="bg-white border border-line rounded-xl shadow-soft px-4 py-3 mb-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-3">
+                <h1 class="text-[26px] leading-8 font-extrabold tracking-tight">意图配置</h1>
+                <span class="text-xs px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">已生效</span>
+              </div>
+              <div class="mt-1 text-sm text-slate-500">
+                统一管理客户来电意图，支持新增、编辑、停用意图，并配置示例说法、推荐动作和生效范围
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft">
+                <i class="fa-solid fa-plus mr-2"></i>新增意图
+              </button>
+              <button class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft">
+                <i class="fa-solid fa-upload mr-2"></i>批量导入
+              </button>
+              <button class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft">保存草稿</button>
+              <button class="h-9 px-5 rounded-lg bg-primary text-white font-semibold shadow-soft">
+                <i class="fa-regular fa-paper-plane mr-2"></i>发布配置
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-9 gap-3">
+            
+            <div class="metric"><div class="text-xs text-slate-500">意图总数</div><div class="font-bold">28</div></div>
+            <div class="metric"><div class="text-xs text-slate-500">已启用</div><div class="font-bold text-emerald-600">24</div></div>
+            <div class="metric"><div class="text-xs text-slate-500">停用</div><div class="font-bold text-red-500">4</div></div>
+            <div class="metric"><div class="text-xs text-slate-500">覆盖业务线</div><div class="font-bold">6</div></div>
+            <div class="metric"><div class="text-xs text-slate-500">平均识别准确率</div><div class="font-bold text-emerald-600">91%</div></div>
+            <div class="metric"><div class="text-xs text-slate-500">最近更新时间</div><div class="font-semibold text-sm">2026-05-25 10:30</div></div>
+          </div>
+        </section>
+
+        <!-- 三栏工作区 -->
+        <section class="grid grid-cols-[295px_1fr_385px] gap-3 h-[668px]">
+          <!-- 意图列表 -->
+          <aside class="card p-3 overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="font-bold">意图列表</h2>
+              <button class="text-xs text-primary font-semibold">管理分类</button>
+            </div>
+            <div class="flex gap-2 mb-2">
+              <div class="flex-1 h-8 rounded-lg border border-line bg-slate-50 px-2 flex items-center gap-2 text-xs text-slate-400">
+                <i class="fa-solid fa-magnifying-glass"></i><span>搜索意图名称</span>
+              </div>
+              <button class="w-8 h-8 rounded-lg border border-line bg-white text-slate-500"><i class="fa-solid fa-filter"></i></button>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-xs mb-3">
+              <div class="h-7 rounded-lg bg-primary text-white flex items-center justify-center font-semibold">全部</div>
+              <div class="h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-semibold">已启用</div>
+              <div class="h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-semibold">停用</div>
+              <div class="h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-semibold">高频</div>
+            </div>
+
+            <div class="custom-scroll overflow-y-auto h-[495px] pr-1 space-y-2">
+              <div class="intent-row active">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center"><i class="fa-solid fa-headset"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">售后问题</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">已启用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">售后咨询、维修与质量问题</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 92%　命中 32,452次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">查询进度</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">已启用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">订单、工单、申请进度查询</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 90%　命中 28,821次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">投诉建议</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">已启用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">投诉、反馈、服务不满</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 88%　命中 16,782次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-circle-info"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">产品咨询</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">已启用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">产品功能、资费与使用咨询</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 93%　命中 21,301次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-user-tie"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">人工服务</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">已启用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">明确要求转人工坐席</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 98%　命中 14,654次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row opacity-70">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">退货退款</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-700">停用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">退换货、退款类诉求</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 86%　命中 9,872次</div>
+                  </div>
+                </div>
+              </div>
+              <div class="intent-row opacity-70">
+                <div class="flex gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between"><b class="text-sm">故障报修</b><span class="text-[11px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-700">停用</span></div>
+                    <div class="text-xs text-slate-500 mt-1">系统故障、设备维修</div>
+                    <div class="text-[11px] text-slate-400 mt-1">准确率 87%　命中 7,653次</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-line">
+              <div class="text-xs font-bold text-slate-500 mb-2">推荐意图模板</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="h-12 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex flex-col items-center justify-center text-xs font-bold"><i class="fa-solid fa-headset mb-1"></i>售后类</div>
+                <div class="h-12 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex flex-col items-center justify-center text-xs font-bold"><i class="fa-solid fa-comments mb-1"></i>咨询类</div>
+                <div class="h-12 rounded-lg bg-orange-50 border border-orange-100 text-orange-700 flex flex-col items-center justify-center text-xs font-bold"><i class="fa-solid fa-triangle-exclamation mb-1"></i>投诉类</div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- 中间详情 -->
+          <section class="card p-4 overflow-hidden">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-xl font-extrabold">售后问题</h2>
+                  <span class="tag tag-green">已启用</span>
+                </div>
+                <div class="text-sm text-slate-500 mt-1">一级分类：服务支持　　推荐动作：创建工单 / 转人工　　生效范围：售后热线</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="h-8 px-3 rounded-lg border border-line text-slate-600 text-sm font-semibold">编辑</button>
+                <button class="h-8 w-8 rounded-lg border border-line text-slate-500"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+              </div>
+            </div>
+
+            <div class="custom-scroll overflow-y-auto h-[610px] pr-1 space-y-3">
+              <div class="card p-4 shadow-none">
+                <div class="font-bold mb-3">基础信息</div>
+                <div class="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
+                  <div class="flex"><span class="text-slate-500 w-24">意图名称</span><span class="font-semibold">售后问题</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">优先级</span><span class="tag tag-orange !m-0">P1 高</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">意图说明</span><span>客户咨询售后服务、维修、质量问题等场景</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">状态</span><span class="text-emerald-600 font-semibold">已启用</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">所属分类</span><span>服务支持</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">创建时间</span><span>2025-03-01 14:25</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">生效范围</span><span>售后服务热线</span></div>
+                  <div class="flex"><span class="text-slate-500 w-24">更新时间</span><span>2026-05-25 10:30</span></div>
+                </div>
+              </div>
+
+              <div class="card p-4 shadow-none">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="font-bold">示例说法</div>
+                  <button class="text-primary text-xs font-semibold">查看全部（12）</button>
+                </div>
+                <div>
+                  <span class="tag">产品有质量问题怎么办？</span>
+                  <span class="tag">我的设备坏了怎么维修？</span>
+                  <span class="tag">售后服务如何申请？</span>
+                  <span class="tag">保修期内能换货吗？</span>
+                  <span class="tag">产品出现故障怎么办？</span>
+                  <span class="tag">产品售后政策是什么？</span>
+                </div>
+              </div>
+
+              <div class="card p-4 shadow-none">
+                <div class="font-bold mb-3">关键词与识别规则</div>
+                <div class="mb-3">
+                  <span class="tag tag-blue">售后</span>
+                  <span class="tag tag-blue">维修</span>
+                  <span class="tag tag-blue">保修</span>
+                  <span class="tag tag-blue">质量问题</span>
+                  <span class="tag tag-blue">换货</span>
+                  <span class="tag tag-blue">故障</span>
+                  <span class="tag tag-blue">退款</span>
+                  <span class="tag">...</span>
+                </div>
+                <div class="grid grid-cols-[1fr_220px] gap-5 items-center">
+                  <div>
+                    <div class="text-xs text-slate-500 mb-2">识别模型</div>
+                    <div class="input-like">售后热线意图库</div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs text-slate-500 mb-2"><span>置信度阈值</span><b class="text-primary">80%</b></div>
+                    <div class="relative h-1.5 bg-slate-200 rounded-full">
+                      <div class="absolute left-0 top-0 h-1.5 w-[70%] rounded-full bg-primary"></div>
+                      <div class="absolute left-[70%] -top-1.5 w-4 h-4 rounded-full bg-primary shadow"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-slate-400 mt-2"><span>50%</span><span>80%</span><span>100%</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card p-4 shadow-none">
+                <div class="font-bold mb-3">推荐处理动作</div>
+                <div class="flow-mini">
+                  <div class="flow-node text-emerald-700 border-emerald-200 bg-emerald-50"><i class="fa-regular fa-book-open mr-1"></i>知识答复</div>
+                  <i class="fa-solid fa-arrow-right text-slate-300"></i>
+                  <div class="flow-node text-orange-700 border-orange-200 bg-orange-50"><i class="fa-regular fa-circle-question mr-1"></i>多轮澄清</div>
+                  <i class="fa-solid fa-arrow-right text-slate-300"></i>
+                  <div class="flow-node text-purple-700 border-purple-200 bg-purple-50"><i class="fa-regular fa-user mr-1"></i>转人工</div>
+                  <i class="fa-solid fa-arrow-right text-slate-300"></i>
+                  <div class="flow-node text-orange-700 border-orange-200 bg-orange-50"><i class="fa-regular fa-file-lines mr-1"></i>创建工单</div>
+                </div>
+              </div>
+
+              <div class="card p-4 shadow-none">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="font-bold">关联知识与路由</div>
+                  <button class="text-primary text-xs font-semibold">查看关联配置</button>
+                </div>
+                <div class="border border-line rounded-xl overflow-hidden">
+                  <div class="assoc-row bg-slate-50 font-bold text-slate-600">
+                    <div class="px-3">关联项</div><div>当前配置</div><div>默认动作</div><div>兜底策略</div><div>备注</div>
+                  </div>
+                  <div class="assoc-row">
+                    <div class="px-3">关联知识库</div><div>售后热线知识库</div><div>知识答复</div><div>默认兜底</div><div class="text-slate-500">支持自动播报</div>
+                  </div>
+                  <div class="assoc-row">
+                    <div class="px-3">默认路由</div><div>售后支持组</div><div>转人工</div><div>无坐席排队</div><div class="text-slate-500">高优先级</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 右侧配置 -->
+          <aside class="card p-4 overflow-hidden">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3">
+                <div class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft">
+                  <i class="fa-solid fa-brain text-xl"></i>
+                </div>
+                <div>
+                  <h2 class="font-bold text-lg">意图详情配置</h2>
+                  <div class="text-xs text-slate-500 mt-1">配置意图说明、示例说法、推荐动作和生效范围</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-xmark text-slate-400"></i>
+            </div>
+
+            <div class="flex border-b border-line mb-4 text-sm">
+              <div class="px-5 py-2 border-b-2 border-primary text-primary font-bold">基础设置</div>
+              <div class="px-5 py-2 text-slate-500">示例话术</div>
+              <div class="px-5 py-2 text-slate-500">日志</div>
+            </div>
+
+            <div class="space-y-4 custom-scroll overflow-y-auto h-[560px] pr-1 text-sm">
+              <label class="block">
+                <span class="text-slate-600 font-semibold">意图名称 <span class="text-red-500">*</span></span>
+                <input value="售后问题" class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </label>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">意图说明 <span class="text-red-500">*</span></span>
+                <textarea class="mt-2 h-16 w-full rounded-lg border border-line px-3 py-2 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-100">客户咨询售后服务、维修、质量问题等场景</textarea>
+                <div class="text-right text-[11px] text-slate-400">21/100</div>
+              </label>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">所属分类 <span class="text-red-500">*</span></span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>服务支持</span><i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <div>
+                <span class="text-slate-600 font-semibold">推荐动作 <span class="text-red-500">*</span></span>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="tag tag-blue !m-0">创建工单 <i class="fa-solid fa-xmark ml-1 text-blue-400"></i></span>
+                  <span class="tag tag-purple !m-0">转人工 <i class="fa-solid fa-xmark ml-1 text-purple-400"></i></span>
+                  <span class="tag !m-0">+ 添加动作</span>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-slate-600 font-semibold">生效范围 <span class="text-red-500">*</span></span>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="tag !m-0">售后问题 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="tag !m-0">查询进度 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="tag !m-0">投诉建议 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="tag !m-0">+ 添加范围</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-600 font-semibold">置信度阈值</span>
+                  <span class="h-8 px-3 rounded-lg border border-line bg-slate-50 flex items-center font-semibold">80%</span>
+                </div>
+                <div class="mt-3 flex items-center gap-3">
+                  <span class="text-xs text-slate-400">50%</span>
+                  <div class="relative flex-1 h-1.5 bg-slate-200 rounded-full">
+                    <div class="absolute left-0 top-0 h-1.5 w-[68%] bg-primary rounded-full"></div>
+                    <div class="absolute left-[68%] -top-1.5 w-4 h-4 rounded-full bg-primary shadow"></div>
+                  </div>
+                  <span class="text-xs text-slate-400">100%</span>
+                </div>
+              </div>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">默认路由 <span class="text-red-500">*</span></span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>售后支持组</span><i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">关联知识库 <span class="text-red-500">*</span></span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>售后热线知识库</span><i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <div class="flex items-center justify-between">
+                <span class="text-slate-600 font-semibold">状态</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-10 h-5 rounded-full bg-primary relative">
+                    <div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+                  </div>
+                  <span class="text-sm font-semibold text-slate-600">已启用</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-slate-600 font-semibold">示例说法</span>
+                  <button class="text-primary text-xs font-semibold">管理示例</button>
+                </div>
+                <div class="rounded-lg border border-line bg-white p-2 text-xs text-slate-600 space-y-2">
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-slate-50 flex items-center justify-center">1</span><span>产品有质量问题怎么办？</span><i class="fa-regular fa-circle-xmark ml-auto text-slate-400"></i></div>
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-slate-50 flex items-center justify-center">2</span><span>我的设备坏了怎么维修？</span><i class="fa-regular fa-circle-xmark ml-auto text-slate-400"></i></div>
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-slate-50 flex items-center justify-center">3</span><span>售后服务如何申请？</span><i class="fa-regular fa-circle-xmark ml-auto text-slate-400"></i></div>
+                </div>
+              </div>
+
+              <div class="pt-2 flex gap-3 sticky bottom-0 bg-white">
+                <button class="flex-1 h-10 rounded-lg border border-line font-semibold text-slate-600">取消</button>
+                <button class="flex-1 h-10 rounded-lg bg-primary text-white font-semibold shadow-soft">保存配置</button>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

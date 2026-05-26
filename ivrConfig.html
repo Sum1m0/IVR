@@ -1,0 +1,661 @@
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能IVR管理平台 - IVR流程配置</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563EB',
+            primaryLight: '#EFF6FF',
+            ink: '#0F172A',
+            muted: '#64748B',
+            line: '#E2E8F0',
+            bg: '#F8FAFC'
+          },
+          boxShadow: {
+            card: '0 10px 30px rgba(15, 23, 42, 0.06)',
+            soft: '0 2px 10px rgba(15, 23, 42, 0.05)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      background:#F8FAFC;
+      color:#0F172A;
+    }
+    .page{
+      width:1600px;
+      height:900px;
+      margin:0 auto;
+      background:#F8FAFC;
+      overflow:hidden;
+      border:1px solid #E2E8F0;
+    }
+    .grid-bg{
+      background-image: radial-gradient(#CBD5E1 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+      background-color: #fff;
+    }
+    .node{
+      position:absolute;
+      min-width:132px;
+      padding:10px 14px;
+      border-radius:10px;
+      background:#fff;
+      border:1.5px solid #CBD5E1;
+      box-shadow:0 3px 10px rgba(15,23,42,.04);
+      font-size:13px;
+      font-weight:600;
+      text-align:center;
+      z-index:2;
+    }
+    .node i{ margin-right:6px; }
+    .node-green{border-color:#22C55E;color:#166534;background:#F0FDF4;}
+    .node-blue{border-color:#3B82F6;color:#1D4ED8;background:#EFF6FF;}
+    .node-purple{border-color:#8B5CF6;color:#6D28D9;background:#F5F3FF;}
+    .node-orange{border-color:#F97316;color:#C2410C;background:#FFF7ED;}
+    .node-red{border-color:#EF4444;color:#B91C1C;background:#FEF2F2;}
+    .diamond{
+      position:absolute;
+      width:150px;height:64px;
+      transform:rotate(45deg);
+      border:1.5px solid #F59E0B;
+      border-radius:10px;
+      background:#FFFBEB;
+      box-shadow:0 3px 10px rgba(15,23,42,.04);
+      z-index:2;
+    }
+    .diamond span{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      transform:rotate(-45deg);
+      color:#92400E;font-weight:600;font-size:13px;
+      text-align:center;
+    }
+    .branch-label{
+      position:absolute;
+      z-index:3;
+      padding:4px 8px;
+      border-radius:7px;
+      font-size:12px;
+      font-weight:600;
+      border:1px solid transparent;
+    }
+    .label-green{color:#15803D;background:#DCFCE7;border-color:#BBF7D0;}
+    .label-orange{color:#C2410C;background:#FFEDD5;border-color:#FED7AA;}
+    .label-purple{color:#7C3AED;background:#F3E8FF;border-color:#E9D5FF;}
+    .label-blue{color:#2563EB;background:#DBEAFE;border-color:#BFDBFE;}
+    .mini-card{
+      border:1px solid #E2E8F0;
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 2px 8px rgba(15,23,42,.03);
+    }
+    .nav-active{
+      background:linear-gradient(90deg,#EFF6FF,#DBEAFE);
+      color:#2563EB;
+      font-weight:700;
+    }
+    .nav-section{color:#334155;font-weight:700;}
+    .custom-scroll::-webkit-scrollbar{width:4px;height:4px}
+    .custom-scroll::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px}
+
+    .toast{
+      position:absolute;
+      top:68px;
+      left:50%;
+      transform:translateX(-50%) translateY(-10px);
+      z-index:80;
+      min-width:300px;
+      height:42px;
+      padding:0 18px;
+      border-radius:10px;
+      background:#ECFDF5;
+      color:#047857;
+      border:1px solid #A7F3D0;
+      box-shadow:0 12px 30px rgba(15,23,42,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-size:14px;
+      font-weight:700;
+      opacity:0;
+      pointer-events:none;
+      transition:all .25s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+    .component-dragging{
+      opacity:.55;
+      transform:scale(.98);
+    }
+    .canvas-drop-active{
+      outline:2px dashed #2563EB;
+      outline-offset:-8px;
+      background-color:#EFF6FF;
+    }
+    .canvas-new-node{
+      cursor:move;
+      user-select:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page relative">
+    <div id="toast" class="toast"><i class="fa-solid fa-circle-check"></i><span id="toastText">操作成功</span></div>
+    <!-- Header -->
+    <header class="h-[56px] bg-white border-b border-line flex items-center justify-between px-5">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 w-[220px]">
+          <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft">
+            <i class="fa-solid fa-headset text-lg"></i>
+          </div>
+          <div class="text-[18px] font-bold tracking-tight">智能IVR管理平台</div>
+        </div>
+        <div class="text-[13px] text-slate-500">
+          <span>运营配置</span>
+          
+          <i class="fa-solid fa-chevron-right mx-2 text-[10px]"></i>
+          <span ><a href="index.html">IVR流程列表</a></span>
+          <i class="fa-solid fa-chevron-right mx-2 text-[10px]"></i>
+          <span class="text-slate-800 font-semibold">IVR流程配置</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="h-9 w-[280px] rounded-lg border border-line bg-slate-50 flex items-center gap-2 px-3 text-slate-400 text-sm">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>搜索功能、流程、知识库等</span>
+          <span class="ml-auto text-xs border border-line bg-white px-1.5 py-0.5 rounded">x</span>
+        </div>
+        <div class="relative text-slate-700">
+          <i class="fa-regular fa-bell text-xl"></i>
+          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] leading-4 px-1.5 rounded-full">12</span>
+        </div>
+        <i class="fa-regular fa-circle-question text-xl text-slate-700"></i>
+        <div class="flex items-center gap-2 pl-2">
+          <img class="w-8 h-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=faces" alt="avatar">
+          <span class="font-semibold text-sm">管理员</span>
+          <i class="fa-solid fa-chevron-down text-xs text-slate-500"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex h-[844px]">
+      <!-- Sidebar -->
+      <aside class="w-[240px] bg-white border-r border-line px-3 py-3 overflow-y-auto custom-scroll">
+        <nav class="space-y-1 text-[13px]">
+          <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-house w-4"></i><span class="font-semibold">首页总览</span>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-chart-column w-4"></i><span>数据分析</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">运营总览</div>
+              <div class="px-3 py-1.5 rounded">意图识别分析</div>
+              <div class="px-3 py-1.5 rounded">知识命中分析</div>
+              <div class="px-3 py-1.5 rounded">工单闭环分析</div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primaryLight text-primary font-bold">
+              <i class="fa-solid fa-gear w-4"></i><span>运营配置</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded nav-active"><a href="index.html">IVR流程配置</a></div>
+              <div class="px-3 py-1.5 rounded"><a href="YiTu.html">意图配置</a></div>
+              <div class="px-3 py-1.5 rounded">话术配置</div>
+              <div class="px-3 py-1.5 rounded">知识配置</div>
+              <div class="px-3 py-1.5 rounded">路由配置</div>
+              <div class="px-3 py-1.5 rounded">兜底配置</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-clipboard-list w-4"></i><span>工单联动</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">工单规则配置</div>
+              <div class="px-3 py-1.5 rounded">字段预填配置</div>
+              <div class="px-3 py-1.5 rounded">工单回流记录</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-chart-simple w-4"></i><span>话务报表</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 text-slate-600">
+              <div class="px-3 py-1.5 rounded">通话记录</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-phone w-4"></i><span>号码管理</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 text-slate-600">
+              <div class="px-3 py-1.5 rounded">热线号码管理</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-line mt-3">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg nav-section">
+              <i class="fa-solid fa-shield-halved w-4"></i><span>系统管理</span>
+              <i class="fa-solid fa-chevron-up ml-auto text-xs text-slate-400"></i>
+            </div>
+            <div class="ml-8 space-y-0.5 text-slate-600">
+              <div class="px-3 py-1.5 rounded">用户管理</div>
+              <div class="px-3 py-1.5 rounded">角色权限</div>
+              <div class="px-3 py-1.5 rounded">操作日志</div>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main class="flex-1 p-4 overflow-hidden">
+        <!-- Top Card -->
+        <section class="bg-white border border-line rounded-xl shadow-soft px-4 py-3 mb-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-3">
+                <h1 class="text-[26px] leading-8 font-extrabold tracking-tight">IVR流程配置</h1>
+                <span class="text-xs px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">已发布</span>
+              </div>
+              <div class="mt-1 text-sm text-slate-500">
+                售后服务热线 <span class="mx-2">/</span> 支持售后咨询、投诉建议、进度查询等场景
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button id="saveDraftBtn" type="button" class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft">保存草稿</button>
+              <button class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft"><i class="fa-solid fa-play mr-2"></i>流程测试</button>
+              <button id="copyFlowBtn" type="button" class="h-9 px-4 rounded-lg border border-line text-slate-700 bg-white font-semibold shadow-soft"><i class="fa-regular fa-copy mr-2"></i>复制流程</button>
+              <button class="h-9 px-5 rounded-lg bg-primary text-white font-semibold shadow-soft"><i class="fa-regular fa-paper-plane mr-2"></i><a href="index.html">发布流程</a></button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-7 gap-3">
+            
+            <div class="px-3 py-2 border-l border-line"><div class="text-xs text-slate-500">流程节点</div><div class="font-bold">10</div></div>
+            <div class="px-3 py-2 border-l border-line"><div class="text-xs text-slate-500">分支</div><div class="font-bold">4</div></div>
+            <div class="px-3 py-2 border-l border-line"><div class="text-xs text-slate-500">自动解决率</div><div class="font-bold text-emerald-600">62%</div></div>
+            <div class="px-3 py-2 border-l border-line"><div class="text-xs text-slate-500">最近更新时间</div><div class="font-semibold text-sm">2026-05-25 10:30</div></div>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-[225px_1fr_375px] gap-3 h-[668px]">
+          <!-- Component Library -->
+          <aside class="bg-white border border-line rounded-xl shadow-soft p-3 overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="font-bold">节点组件</h2>
+              <i class="fa-solid fa-ellipsis text-slate-400"></i>
+            </div>
+            <div class="flex gap-2 mb-3">
+              <div class="flex-1 h-8 rounded-lg border border-line bg-slate-50 px-2 flex items-center gap-2 text-xs text-slate-400">
+                <i class="fa-solid fa-magnifying-glass"></i><span>搜索组件</span>
+              </div>
+              <button class="w-8 h-8 rounded-lg border border-line bg-white text-slate-500"><i class="fa-solid fa-filter"></i></button>
+            </div>
+            <div class="custom-scroll overflow-y-auto h-[590px] pr-1">
+              <div class="text-xs font-bold text-slate-500 mb-2">基础组件</div>
+              <div class="space-y-2">
+                <div class="h-36px p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="来电入口" data-node-icon="fa-solid fa-phone" data-node-class="node-green" title="拖拽到右侧画布"><i class="fa-solid fa-phone-volume text-emerald-600 w-5"></i><span class="font-semibold text-sm">来电入口</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="欢迎语" data-node-icon="fa-solid fa-volume-high" data-node-class="node-blue" title="拖拽到右侧画布"><i class="fa-solid fa-volume-high text-blue-600 w-5"></i><span class="font-semibold text-sm">欢迎语</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="语音识别" data-node-icon="fa-solid fa-microphone" data-node-class="node-purple" title="拖拽到右侧画布"><i class="fa-solid fa-microphone text-purple-600 w-5"></i><span class="font-semibold text-sm">语音识别</span></div>
+                <div class="p-2.5 rounded-lg border border-primary bg-primaryLight flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="意图识别" data-node-icon="fa-solid fa-brain" data-node-class="node-blue" title="拖拽到右侧画布"><i class="fa-solid fa-brain text-primary w-5"></i><span class="font-bold text-sm text-primary">意图识别</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="多轮澄清" data-node-icon="fa-regular fa-circle-question" data-node-class="node-orange" title="拖拽到右侧画布"><i class="fa-regular fa-circle-question text-orange-500 w-5"></i><span class="font-semibold text-sm">多轮澄清</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="知识答复" data-node-icon="fa-regular fa-book-open" data-node-class="node-green" title="拖拽到右侧画布"><i class="fa-regular fa-book-open text-emerald-600 w-5"></i><span class="font-semibold text-sm">知识答复</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="智能路由" data-node-icon="fa-solid fa-diagram-project" data-node-class="node-purple" title="拖拽到右侧画布"><i class="fa-solid fa-diagram-project text-blue-600 w-5"></i><span class="font-semibold text-sm">智能路由</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="转人工" data-node-icon="fa-regular fa-user" data-node-class="node-purple" title="拖拽到右侧画布"><i class="fa-regular fa-user text-violet-600 w-5"></i><span class="font-semibold text-sm">转人工</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="工单创建" data-node-icon="fa-regular fa-file-lines" data-node-class="node-orange" title="拖拽到右侧画布"><i class="fa-regular fa-file-lines text-orange-500 w-5"></i><span class="font-semibold text-sm">工单创建</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-white flex items-center gap-3 cursor-move select-none hover:border-primary hover:bg-blue-50 transition" draggable="true" data-node-label="结束节点" data-node-icon="fa-solid fa-power-off" data-node-class="node-red" title="拖拽到右侧画布"><i class="fa-solid fa-power-off text-red-500 w-5"></i><span class="font-semibold text-sm">结束节点</span></div>
+              </div>
+
+              <div class="text-xs font-bold text-slate-500 mt-5 mb-2">快捷模板</div>
+              <div class="space-y-2">
+                <div class="p-2.5 rounded-lg border border-line bg-slate-50 flex items-center gap-3"><i class="fa-regular fa-square-check text-primary"></i><span class="font-semibold text-sm">售后主流程</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-slate-50 flex items-center gap-3"><i class="fa-regular fa-square-check text-emerald-600"></i><span class="font-semibold text-sm">投诉专线</span></div>
+                <div class="p-2.5 rounded-lg border border-line bg-slate-50 flex items-center gap-3"><i class="fa-regular fa-square-check text-orange-500"></i><span class="font-semibold text-sm">综合客服</span></div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Canvas -->
+          <section class="relative bg-white border border-line rounded-xl shadow-soft overflow-hidden">
+            <div class="absolute left-3 top-3 z-10 bg-white border border-line rounded-lg shadow-soft flex items-center divide-x divide-line text-slate-500">
+              <button class="w-9 h-8"><i class="fa-solid fa-rotate-left"></i></button>
+              <button class="w-9 h-8 text-slate-300"><i class="fa-solid fa-rotate-right"></i></button>
+              <button class="w-9 h-8"><i class="fa-regular fa-trash-can"></i></button>
+              
+            
+            </div>
+            <button class="absolute right-4 top-4 z-10 h-8 px-3 rounded-lg border border-line bg-white shadow-soft text-xs text-slate-500 font-semibold">
+              <i class="fa-solid fa-maximize mr-1"></i> 适应画布
+            </button>
+
+            <div id="flowCanvas" class="absolute inset-0 grid-bg">
+              <svg class="absolute inset-0 w-full h-full z-[1]" viewBox="0 0 760 660" preserveAspectRatio="none">
+                <defs>
+                  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#64748B" />
+                  </marker>
+                  <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#2563EB" />
+                  </marker>
+                </defs>
+                <path d="M380 78 L380 122" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <!-- <path d="M380 166 L380 210" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M380 252 L380 296" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M380 386 L380 430" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+                <path d="M305 348 L150 348 L150 410" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M455 348 L590 348 L590 410" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M380 412 L270 412 L270 452" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M470 412 L470 452" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+                <path d="M150 458 L150 512" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M150 576 L150 620" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M220 545 C310 545 300 455 270 455" stroke="#64748B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+                <path d="M270 500 L380 500 L380 278" stroke="#64748B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowBlue)"/>
+
+                <path d="M470 500 L470 554" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <path d="M590 458 L590 512" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/> -->
+              </svg>
+
+              <div class="node node-green" style="left:325px;top:42px;"><i class="fa-solid fa-phone"></i>来电入口</div>
+              <!-- <div class="node node-blue" style="left:270px;top:102px;min-width:220px;"><i class="fa-solid fa-volume-high"></i>欢迎语：您好，请直接说出您的问题</div>
+              <div class="node node-blue" style="left:314px;top:162px;min-width:150px;"><i class="fa-solid fa-brain"></i>意图识别</div>
+              <div class="diamond" style="left:305px;top:235px;"><span>系统判断<br/>处理方式</span></div>
+
+              <div class="branch-label label-green" style="left:106px;top:327px;">标准问题</div>
+              <div class="node node-green" style="left:88px;top:384px;"><i class="fa-regular fa-book-open"></i>知识答复</div>
+              <div class="diamond" style="left:80px;top:476px;width:140px;height:60px;"><span>问题是否解决</span></div>
+              <div class="branch-label label-green" style="left:78px;top:560px;">是</div>
+              <div class="branch-label label-red" style="left:178px;top:560px;">否</div> -->
+              <div class="node node-red" style="left:90px;top:607px;min-width:110px;"><i class="fa-solid fa-power-off"></i>结束</div>
+
+              <div class="branch-label label-orange" style="left:252px;top:328px;">信息不足</div>
+              <div class="node node-orange" style="left:218px;top:384px;"><i class="fa-regular fa-circle-question"></i>多轮澄清</div>
+
+              <div class="branch-label label-purple" style="left:468px;top:329px;">需要人工</div>
+              <div class="node node-purple" style="left:438px;top:384px;"><i class="fa-solid fa-diagram-project"></i>智能路由</div>
+              <div class="node node-purple" style="left:447px;top:476px;"><i class="fa-regular fa-user"></i>转人工</div>
+
+              <div class="branch-label label-blue" style="left:588px;top:329px;">需要后续处理</div>
+              <div class="node node-orange" style="left:566px;top:384px;"><i class="fa-regular fa-file-lines"></i>工单创建</div>
+              <div class="node node-orange" style="left:566px;top:476px;"><i class="fa-solid fa-rotate"></i>工单流转</div>
+
+              <div class="absolute left-[250px] bottom-4 h-9 bg-white border border-line rounded-lg shadow-soft flex items-center divide-x divide-line text-slate-500 z-10">
+                <button class="w-10"><i class="fa-regular fa-hand"></i></button>
+                <button class="w-10"><i class="fa-solid fa-expand"></i></button>
+                <button class="w-10 text-lg">−</button>
+                <button class="px-4 text-sm font-semibold">100%</button>
+                <button class="w-10 text-lg">＋</button>
+              </div>
+              <div class="absolute right-4 bottom-4 w-[110px] h-[88px] bg-white/90 border border-line rounded-lg shadow-soft flex items-center justify-center z-10">
+                <div class="w-20 h-14 rounded bg-slate-100 relative">
+                  <span class="absolute left-8 top-1 w-4 h-3 rounded bg-blue-300"></span>
+                  <span class="absolute left-4 top-5 w-4 h-3 rounded bg-green-300"></span>
+                  <span class="absolute left-8 top-5 w-4 h-3 rounded bg-orange-300"></span>
+                  <span class="absolute left-12 top-5 w-4 h-3 rounded bg-purple-300"></span>
+                  <span class="absolute left-8 top-9 w-4 h-3 rounded bg-red-300"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Config Panel -->
+          <aside class="bg-white border border-line rounded-xl shadow-soft p-4 overflow-hidden">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h2 class="font-bold text-lg">节点配置</h2>
+                <div class="mt-2 flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft">
+                    <i class="fa-solid fa-brain text-xl"></i>
+                  </div>
+                  <div>
+                    <div class="font-bold">意图识别</div>
+                    <div class="text-xs text-slate-500 mt-0.5">识别用户意图并进行路由分发</div>
+                  </div>
+                </div>
+              </div>
+              <i class="fa-solid fa-xmark text-slate-400"></i>
+            </div>
+
+            <div class="flex border-b border-line mb-4 text-sm">
+              <div class="px-5 py-2 border-b-2 border-primary text-primary font-bold">基础设置</div>
+              <div class="px-5 py-2 text-slate-500">高级规则</div>
+              <div class="px-5 py-2 text-slate-500">日志</div>
+            </div>
+
+            <div class="space-y-4 custom-scroll overflow-y-auto h-[540px] pr-1 text-sm">
+              <label class="block">
+                <span class="text-slate-600 font-semibold">节点名称</span>
+                <input value="意图识别" class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </label>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">意图识别范围</span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>售后热线意图库</span>
+                  <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-600 font-semibold">置信度阈值</span>
+                  <span class="h-8 px-3 rounded-lg border border-line bg-slate-50 flex items-center font-semibold">80%</span>
+                </div>
+                <div class="mt-3 flex items-center gap-3">
+                  <span class="text-xs text-slate-400">50%</span>
+                  <div class="relative flex-1 h-1.5 bg-slate-200 rounded-full">
+                    <div class="absolute left-0 top-0 h-1.5 w-[68%] bg-primary rounded-full"></div>
+                    <div class="absolute left-[68%] -top-1.5 w-4 h-4 rounded-full bg-primary shadow"></div>
+                  </div>
+                  <span class="text-xs text-slate-400">100%</span>
+                </div>
+              </div>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">低置信度处理</span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>进入多轮澄清</span>
+                  <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <div>
+                <span class="text-slate-600 font-semibold">识别失败次数</span>
+                <div class="mt-2 h-9 w-[170px] rounded-lg border border-line bg-white flex items-center divide-x divide-line">
+                  <button class="w-12 text-slate-500">−</button>
+                  <div class="flex-1 text-center font-semibold">3 次</div>
+                  <button class="w-12 text-primary">＋</button>
+                </div>
+              </div>
+
+              <label class="block">
+                <span class="text-slate-600 font-semibold">关联兜底策略</span>
+                <div class="mt-2 h-9 w-full rounded-lg border border-line px-3 bg-white flex items-center justify-between">
+                  <span>默认兜底策略A</span>
+                  <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                </div>
+              </label>
+
+              <div>
+                <span class="text-slate-600 font-semibold">生效范围</span>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs">售后问题 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs">查询进度 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs">投诉建议 <i class="fa-solid fa-xmark ml-1 text-slate-400"></i></span>
+                  <span class="px-2 py-1 rounded-md border border-dashed border-line text-primary text-xs">+ 添加</span>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-slate-600 font-semibold">示例话术（匹配示例）</span>
+                <div class="mt-2 rounded-lg border border-line bg-white p-3 text-xs text-slate-600 leading-7">
+                  <div>• 我的订单什么时候能到？</div>
+                  <div>• 产品有质量问题怎么办？</div>
+                  <div>• 售后服务怎么申请？</div>
+                  <div>• 怎么退货退款？</div>
+                </div>
+              </div>
+
+              <div class="pt-2 flex gap-3 sticky bottom-0 bg-white">
+                <button class="flex-1 h-10 rounded-lg border border-line font-semibold text-slate-600">取消</button>
+                <button class="flex-1 h-10 rounded-lg bg-primary text-white font-semibold shadow-soft">保存配置</button>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+<script>
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+  const saveDraftBtn = document.getElementById('saveDraftBtn');
+  const copyFlowBtn = document.getElementById('copyFlowBtn');
+  const flowCanvas = document.getElementById('flowCanvas');
+  let toastTimer = null;
+
+  function showToast(message){
+    toastText.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  saveDraftBtn?.addEventListener('click', () => {
+    showToast('草稿已保存至 IVR流程列表');
+  });
+
+  copyFlowBtn?.addEventListener('click', () => {
+    showToast('已复制至 IVR流程列表');
+  });
+
+  // 左侧组件拖拽到画布
+  document.querySelectorAll('[data-node-label]').forEach(item => {
+    item.addEventListener('dragstart', event => {
+      item.classList.add('component-dragging');
+      const payload = {
+        label: item.dataset.nodeLabel,
+        icon: item.dataset.nodeIcon,
+        nodeClass: item.dataset.nodeClass
+      };
+      event.dataTransfer.setData('application/json', JSON.stringify(payload));
+      event.dataTransfer.effectAllowed = 'copy';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('component-dragging');
+    });
+  });
+
+  flowCanvas?.addEventListener('dragover', event => {
+    event.preventDefault();
+    flowCanvas.classList.add('canvas-drop-active');
+    event.dataTransfer.dropEffect = 'copy';
+  });
+
+  flowCanvas?.addEventListener('dragleave', event => {
+    if (!flowCanvas.contains(event.relatedTarget)) {
+      flowCanvas.classList.remove('canvas-drop-active');
+    }
+  });
+
+  flowCanvas?.addEventListener('drop', event => {
+    event.preventDefault();
+    flowCanvas.classList.remove('canvas-drop-active');
+
+    let payload = null;
+    try {
+      payload = JSON.parse(event.dataTransfer.getData('application/json'));
+    } catch (error) {}
+
+    if (!payload || !payload.label) return;
+
+    const rect = flowCanvas.getBoundingClientRect();
+    const x = Math.max(16, Math.min(event.clientX - rect.left - 66, rect.width - 160));
+    const y = Math.max(16, Math.min(event.clientY - rect.top - 20, rect.height - 60));
+
+    createCanvasNode(payload, x, y);
+  });
+
+  function createCanvasNode(payload, x, y){
+    const node = document.createElement('div');
+    node.className = `node ${payload.nodeClass || 'node-blue'} canvas-new-node`;
+    node.style.left = `${x}px`;
+    node.style.top = `${y}px`;
+    node.style.zIndex = 6;
+    node.innerHTML = `<i class="${payload.icon || 'fa-solid fa-circle-dot'}"></i>${payload.label}`;
+    flowCanvas.appendChild(node);
+    enableCanvasNodeMove(node);
+  }
+
+  // 让新增到画布上的节点可以二次拖动摆放
+  function enableCanvasNodeMove(node){
+    let moving = false;
+    let startX = 0;
+    let startY = 0;
+    let baseLeft = 0;
+    let baseTop = 0;
+
+    node.addEventListener('mousedown', event => {
+      moving = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      baseLeft = parseFloat(node.style.left) || 0;
+      baseTop = parseFloat(node.style.top) || 0;
+      node.style.zIndex = 20;
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    document.addEventListener('mousemove', event => {
+      if (!moving) return;
+      const rect = flowCanvas.getBoundingClientRect();
+      const nextLeft = Math.max(8, Math.min(baseLeft + event.clientX - startX, rect.width - node.offsetWidth - 8));
+      const nextTop = Math.max(8, Math.min(baseTop + event.clientY - startY, rect.height - node.offsetHeight - 8));
+      node.style.left = `${nextLeft}px`;
+      node.style.top = `${nextTop}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!moving) return;
+      moving = false;
+      node.style.zIndex = 6;
+    });
+  }
+</script>
+
+</body>
+</html>
+
